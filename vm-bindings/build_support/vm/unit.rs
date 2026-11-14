@@ -301,8 +301,11 @@ impl Unit {
                 .env()
                 .iter()
                 .find(|var| var.0 == OsStr::new("LIB"))
+                .map(|var| var.1.clone())
+                // a portable (unregistered) MSVC is only described by the vcvars-style environment
+                .or_else(|| env::var_os("LIB"))
                 .expect("MSVC toolchain is not detected");
-            for path in std::env::split_paths(&libs.1) {
+            for path in std::env::split_paths(&libs) {
                 if let Ok(path) = to_absolute::canonicalize(path) {
                     build.ar_flag(&format!("-LIBPATH:{}\\", path.display()));
                 }
