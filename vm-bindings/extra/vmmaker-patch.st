@@ -84,7 +84,7 @@ SpurMemoryManager compile: 'getOldSpaceMemoryEnd
 SpurMemoryManager compile: 'getEdenSpaceMemoryStart
     <api>
     <export: true>
-    ^ scavenger eden start'.
+    ^ self objectStartingAt: scavenger eden start'.
 
 SpurMemoryManager compile: 'getEdenSpaceMemoryEnd
     <api>
@@ -94,7 +94,7 @@ SpurMemoryManager compile: 'getEdenSpaceMemoryEnd
 SpurMemoryManager compile: 'getPastSpaceMemoryStart
     <api>
     <export: true>
-    ^ scavenger pastSpace start'.
+    ^ self objectStartingAt: scavenger pastSpace start'.
 
 SpurMemoryManager compile: 'getPastSpaceMemoryEnd
     <api>
