@@ -1,4 +1,5 @@
 use crate::{ApplicationError, Result};
+use vm_runtime::image_path_for;
 use clap::builder::{PossibleValue, StyledStr};
 use clap::{Parser, ValueEnum};
 use std::fmt::format;
@@ -10,6 +11,9 @@ pub struct AppOptions {
     /// A path to a custom Pharo .image to use instead of automatically detecting one
     #[clap(long)]
     image: Option<PathBuf>,
+    /// Same as --image, so that an .image file or folder can be dropped on the executable
+    #[clap(conflicts_with = "image")]
+    image_path: Option<PathBuf>,
     #[clap(long, value_name = "MODE", value_enum, default_value_t = WorkerThreadMode::Auto, long_help)]
     /// Choose whether to run Pharo in a worker thread
     worker: WorkerThreadMode,
@@ -20,11 +24,14 @@ pub struct AppOptions {
 
 impl AppOptions {
     pub fn canonicalize(&mut self) -> Result<()> {
+        if self.image.is_none() {
+            self.image = self.image_path.take();
+        }
         if let Some(ref image) = self.image {
             if !image.exists() {
                 return ApplicationError::ImageFileDoesNotExist(image.clone()).into();
             }
-            self.image = Some(to_absolute::canonicalize(image)?);
+            self.image = Some(image_path_for(to_absolute::canonicalize(image)?));
         }
         Ok(())
     }
