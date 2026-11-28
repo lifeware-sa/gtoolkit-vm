@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 
 use vm_runtime::vm_bindings::InterpreterConfiguration;
 use vm_runtime::{
-    executable_working_directory, search_image_file_within_directories, ApplicationError,
-    Constellation, Result, VirtualMachineConfiguration,
+    executable_working_directory, image_path_for, search_image_file_within_directories,
+    ApplicationError, Constellation, Result, VirtualMachineConfiguration,
 };
 
 use crate::application_options::AppOptions;
@@ -102,7 +102,11 @@ pub fn pick_image_with_dialog(default_path: Option<PathBuf>) -> Option<PathBuf> 
     if let Some(ref default_path) = default_path {
         dialog = dialog.set_location(default_path);
     }
-    dialog = dialog.add_filter("Pick an .image file", &["image"]);
+    // An image folder (perm space) cannot be picked: pick its header.ston instead.
+    dialog = dialog.add_filter(
+        "Pick an .image file, or the header.ston inside an .image folder",
+        &["image", "ston"],
+    );
 
     let result = dialog.show_open_single_file().unwrap_or_else(|e| {
         panic!("{}", e);
@@ -110,7 +114,7 @@ pub fn pick_image_with_dialog(default_path: Option<PathBuf>) -> Option<PathBuf> 
 
     match result {
         Some(file_name) => {
-            let file_path = PathBuf::new().join(file_name);
+            let file_path = image_path_for(PathBuf::new().join(file_name));
             if file_path.exists() {
                 Some(file_path)
             } else {
